@@ -2,11 +2,11 @@ import time
 import os
 import re
 import subprocess
+import time
+import pwd
 from os import listdir
-from os.path import isfile, join
-cores_prev = dict()
-process_prev = dict()
-uptime_prev = 0
+
+
 def get_cpu_usage():
 	with open('/proc/stat','r') as f_cpu:
 		file_cpu = f_cpu.readlines()
@@ -14,9 +14,9 @@ def get_cpu_usage():
 	return cores
 
 def get_mem_usage():
-	result = subprocess.run(['free'], shell=True, capture_output=True, text=True)
-	total, *rest, shared, buff_cache, available = [int(i) for i in result.stdout.split()[7:13]]
-	swap_total, swap_used, swap_free = [int(i) for i in result.stdout.split()[14:]]
+	free_result = subprocess.run(['free'], shell=True, capture_output=True, text=True)
+	total, *rest, shared, buff_cache, available = [int(i) for i in free_result.stdout.split()[7:13]]
+	swap_total, swap_used, swap_free = [int(i) for i in free_result.stdout.split()[14:]]
 	mem_used = total - available - shared - buff_cache 
 	swap_used = swap_total - swap_free
 	return [total, mem_used, swap_total, swap_used]
@@ -27,7 +27,27 @@ def get_uptime():
 	uptime = float(file_uptime[1])	
 	return uptime
 
+def get_clock_ticks():
+	getconf_result = subprocess.run(["getconf CLK_TCK"], shell=True, capture_output=True, text=True) # TODO search for info about getting this data
+	return int(getconf_result.stdout)
 
+def get_cores_number():
+	with open('/proc/cpuinfo','r') as f:
+		file = f.read()
+	cores_counter = len(re.findall('processor',file))
+	return cores_counter
+
+def get_process_user(pid):
+	stat_info = os.stat(f'/proc/{pid}')
+	uid = stat_info.st_uid
+	user = pwd.getpwuid(uid)[0]
+	return user
+
+uptime_prev = 0
+cores_prev = dict()
+process_prev = dict()
+cores_number = get_cores_number()
+clk_tck = get_clock_ticks()
 
 while(True):
 	os.system('clear')
@@ -48,26 +68,36 @@ while(True):
 	for pid in pids:
 		try:	
 			with open(f'/proc/{pid}/stat') as f:
-				file = f.read().split()	
-			with open(f'/proc/{pid}/status') as f_m:
-				file_m = f_m.read()
+				file_stat = f.read().split()	
+			with open(f'/proc/{pid}/cmdline','r') as f:
+				file_cmd = f.read().strip().replace("\x00","")
+			with open(f'/proc/{pid}/status') as f:
+				file_m = f.read()
+			owner = get_process_user(pid)	
 		except:
 			continue
-		utime = int(file[13])
-		stime = int(file[14])
+		status = file_stat[2]
+		utime = int(file_stat[13])
+		stime = int(file_stat[14])
+		pri = int(file_stat[17])
+		ni = int(file_stat[18])
+		virt = int(file_stat[22])
+		
 		total_time = utime+stime
-		cpu_usage = round(((total_time - process_prev.get(pid,0))/((uptime-uptime_prev)*12))*100,2) #12 do zmiany
-		process_prev[pid] = total_time
-		status = file[2]
-		pri = int(file[17])
-		ni = int(file[18])
-		virt = int(file[22])/1024 # jednostki
-
+		cpu_usage = round(((total_time - process_prev.get(pid,0))/((uptime-uptime_prev)*cores_number))*100,1) 
+		process_prev[pid] = total_time 
+		vm_size = int(re.findall('VmSize.*?([0-9]\S*)',file_m)[0]) 
 		res = int(re.findall('VmRSS.*?([0-9]\S*)',file_m)[0])
 		rss_file = int(re.findall('RssFile.*?([0-9]\S*)',file_m)[0])	
-		rss_shmem = int(re.findall('RssShmem.*?([0-9]\S*)',file_m)[0])	
+		rss_shmem = int(re.findall('RssShmem.*?([0-9]\S*)',file_m)[0])
+		
+		time_plus = total_time/clk_tck
+		mem_usage = round((res/mem_output[0])*100,1) 
 		shr = rss_file + rss_shmem 
-		processes.append([pid,'ubuntu',pri,ni,virt,res,shr,status,cpu_usage])	
-	
+		processes.append([pid,owner, pri, ni, virt, res, shr, status, cpu_usage, mem_usage ,time_plus, file_cmd])
 	uptime_prev = uptime
+	print(processes[0])
+	print(processes[1])
+	print(processes[2])
 	time.sleep(1)
+	 
