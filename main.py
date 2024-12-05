@@ -37,11 +37,55 @@ def get_cores_number():
 	cores_counter = len(re.findall('processor',file))
 	return cores_counter
 
-def get_process_user(pid):
-	stat_info = os.stat(f'/proc/{pid}')
-	uid = stat_info.st_uid
-	user = pwd.getpwuid(uid)[0]
-	return user
+
+class FileNotFoundError(Exception):
+	def __init__(self,message):
+		self.message = message
+		super().__init__(self.message)
+		print(self.message)
+
+class Process:
+	def __init__(self, pid):
+		self.pid = pid
+		self.stat_path = f'/proc/{pid}/stat'
+		self.status_path = f'/proc/{pid}/status'
+		self.cmdline_path = f'/proc/{pid}/cmdline'
+	def _read_file(self,path):
+		try:
+			with open(path) as f:
+				return f.read()	
+		except FileNotFoundError:
+			raise FileNotFoundError
+
+	def get_stat(self):
+		file = self._read_file(self.stat_path).split()
+		status = file[2]
+		utime = int(file[13])
+		stime = int(file[14])
+		pri = int(file[17])
+		ni = int(file[18])
+		virt = int(file[22])
+		total_time = stime + utime
+		return [status, pri, ni, virt, total_time] 
+	
+	def get_status(self):
+		file = self._read_file(self.status_path)
+		vm_size = int(re.findall('VmSize.*?([0-9]\S*)',file)[0]) 
+		res = int(re.findall('VmRSS.*?([0-9]\S*)',file)[0])
+		rss_file = int(re.findall('RssFile.*?([0-9]\S*)',file)[0])	
+		rss_shmem = int(re.findall('RssShmem.*?([0-9]\S*)',file)[0])
+		return [vm_size, res, rss_file, rss_shmem]	
+
+	def get_command(self):
+		file = self._read_file(self.cmdline_path)
+		return file.strip().replace("/x00","")
+	
+	def get_process_owner(self):
+		stat_info = os.stat(f'/proc/{pid}')
+		uid = stat_info.st_uid
+		user = pwd.getpwuid(uid)[0]
+		return user
+		
 
 uptime_prev = 0
 cores_prev = dict()
@@ -50,7 +94,6 @@ cores_number = get_cores_number()
 clk_tck = get_clock_ticks()
 
 while(True):
-	os.system('clear')
 	mem_output = get_mem_usage()
 	cores_usage = list()
 	for core in get_cpu_usage():
@@ -66,38 +109,22 @@ while(True):
 	uptime = get_uptime()		
 	processes = list()	
 	for pid in pids:
-		try:	
-			with open(f'/proc/{pid}/stat') as f:
-				file_stat = f.read().split()	
-			with open(f'/proc/{pid}/cmdline','r') as f:
-				file_cmd = f.read().strip().replace("\x00","")
-			with open(f'/proc/{pid}/status') as f:
-				file_m = f.read()
-			owner = get_process_user(pid)	
+		try:
+			process = Process(pid)
+			[status, pri, ni, virt, total_time] = process.get_stat()	
+			[vm_size, res, rss_file, rss_shmem] = process.get_status()
+			command = process.get_command()
+			owner = process.get_process_owner()	
 		except:
 			continue
-		status = file_stat[2]
-		utime = int(file_stat[13])
-		stime = int(file_stat[14])
-		pri = int(file_stat[17])
-		ni = int(file_stat[18])
-		virt = int(file_stat[22])
-		
-		total_time = utime+stime
 		cpu_usage = round(((total_time - process_prev.get(pid,0))/((uptime-uptime_prev)*cores_number))*100,1) 
 		process_prev[pid] = total_time 
-		vm_size = int(re.findall('VmSize.*?([0-9]\S*)',file_m)[0]) 
-		res = int(re.findall('VmRSS.*?([0-9]\S*)',file_m)[0])
-		rss_file = int(re.findall('RssFile.*?([0-9]\S*)',file_m)[0])	
-		rss_shmem = int(re.findall('RssShmem.*?([0-9]\S*)',file_m)[0])
-		
+			
 		time_plus = total_time/clk_tck
 		mem_usage = round((res/mem_output[0])*100,1) 
 		shr = rss_file + rss_shmem 
-		processes.append([pid,owner, pri, ni, virt, res, shr, status, cpu_usage, mem_usage ,time_plus, file_cmd])
+		processes.append([pid,owner, pri, ni, virt, res, shr, status, cpu_usage, mem_usage ,time_plus, command])
 	uptime_prev = uptime
-	print(processes[0])
-	print(processes[1])
-	print(processes[2])
+	print(processes)	
 	time.sleep(1)
 	 
