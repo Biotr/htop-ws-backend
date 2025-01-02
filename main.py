@@ -6,7 +6,6 @@ import time
 import pwd
 from os import listdir
 
-
 def get_cpu_usage():
 	with open('/proc/stat','r') as f_cpu:
 		file_cpu = f_cpu.readlines()
@@ -37,25 +36,16 @@ def get_cores_number():
 	cores_counter = len(re.findall('processor',file))
 	return cores_counter
 
-
-class FileNotFoundError(Exception):
-	def __init__(self,message):
-		self.message = message
-		super().__init__(self.message)
-		print(self.message)
-
 class Process:
 	def __init__(self, pid):
 		self.pid = pid
 		self.stat_path = f'/proc/{pid}/stat'
 		self.status_path = f'/proc/{pid}/status'
 		self.cmdline_path = f'/proc/{pid}/cmdline'
+
 	def _read_file(self,path):
-		try:
-			with open(path) as f:
-				return f.read()	
-		except FileNotFoundError:
-			raise FileNotFoundError
+		with open(path) as f:
+			return f.read()	
 
 	def get_stat(self):
 		file = self._read_file(self.stat_path).split()
@@ -86,7 +76,7 @@ class Process:
 		user = pwd.getpwuid(uid)[0]
 		return user
 		
-
+	
 uptime_prev = 0
 cores_prev = dict()
 process_prev = dict()
@@ -125,6 +115,6 @@ while(True):
 		shr = rss_file + rss_shmem 
 		processes.append([pid,owner, pri, ni, virt, res, shr, status, cpu_usage, mem_usage ,time_plus, command])
 	uptime_prev = uptime
-	print(processes)	
+	print(processes[1])	
 	time.sleep(1)
 	 
