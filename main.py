@@ -71,25 +71,23 @@ class Process:
 		return file.strip().replace("/x00","")
 	
 	def get_process_owner(self):
-		stat_info = os.stat(f'/proc/{pid}')
+		stat_info = os.stat(f'/proc/{self.pid}')
 		uid = stat_info.st_uid
 		user = pwd.getpwuid(uid)[0]
 		return user
 		
-	
 uptime_prev = 0
 cores_prev = dict()
 process_prev = dict()
 cores_number = get_cores_number()
 clk_tck = get_clock_ticks()
-
-while(True):
+def get_all_data(uptime_prev = 0):
 	mem_output = get_mem_usage()
 	cores_usage = list()
 	for core in get_cpu_usage():
 		core = [int(i) if i.isnumeric() else i for i in core.strip().split()]
 		cpu_total = sum(core[1:])
-		cpu_total_delta = cpu_total - cores_prev.get(core[0],[0,0])[0]
+		cpu_total_delta = cpu_total - cores_prev.get(core[0],[0,0])[0]	
 		cpu_idled_delta = core[4] - cores_prev.get(core[0],[0,0])[1]
 		cpu_percentage = round(((cpu_total_delta - cpu_idled_delta)/cpu_total_delta)*100,1)
 		cores_usage.append(cpu_percentage)
@@ -105,16 +103,18 @@ while(True):
 			[vm_size, res, rss_file, rss_shmem] = process.get_status()
 			command = process.get_command()
 			owner = process.get_process_owner()	
-		except:
+		except :
 			continue
 		cpu_usage = round(((total_time - process_prev.get(pid,0))/((uptime-uptime_prev)*cores_number))*100,1) 
 		process_prev[pid] = total_time 
-			
 		time_plus = total_time/clk_tck
 		mem_usage = round((res/mem_output[0])*100,1) 
 		shr = rss_file + rss_shmem 
 		processes.append([pid,owner, pri, ni, virt, res, shr, status, cpu_usage, mem_usage ,time_plus, command])
 	uptime_prev = uptime
-	print(processes[1])	
-	time.sleep(1)
-	 
+	data = {
+		"cpu": cores_usage,
+		"memory": mem_output,
+		"processes": processes
+	}
+	return data 
