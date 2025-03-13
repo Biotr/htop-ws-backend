@@ -4,15 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>My Website</title>
-    <link rel="stylesheet" href="./style.css">
-    <link rel="icon" href="./favicon.ico" type="image/x-icon">
-    <script src="index.js"></script>
+    <title>HTOP</title>
+    <style>
+        body,html {
+            margin:0;
+            padding: 0;
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 14px;
+            color: black;
+            letter-spacing:0px;
+            line-height: 1;
+            font-weight: normal;
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        body{
+            background-color: #002451;
+            align-content: center;
+            padding-top: 10px;
+        }
+        main, footer{
+            display: block;
+            min-width: 800px;
+            max-width: 1300px;
+            margin: auto;
+            padding-top: 10px;
+        }
+        .cores-container {
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            justify-content: space-between;
+        }
+        .second-container{
+            display: grid;
+            grid-template-columns: repeat(2,1fr);
+        }
+        
+        .cell{
+            color:#99ffff;
+            margin:2px 5px;
+            overflow: hidden;
+            text-wrap: nowrap;
+            white-space: pre;
+        }
+        table{
+            display: block;
+            width: inherit;
+            text-align: right;
+            border-collapse: collapse;
+            text-wrap: nowrap;
+            overflow-y: auto;
+            height: 600px;
+            cursor:pointer
+        }
+        th{
+            background-color: #b8f171;
+            color:#111111;
+            font-weight: normal;
+            margin: 0;
+        }
+        th:nth-child(2),td:nth-child(1), th:nth-child(12),td:nth-child(2),td:nth-child(12){
+            text-align: left;
+            white-space: pre;
+        }
+        th:nth-child(11), td:nth-child(11){
+            text-align: center;
+        }
+        td{
+            color: #cccccc;
+        }
+        td,th{
+            padding-left: 5px;
+        }
+        th:nth-child(12){
+            width: 100%;
+        }
+        .active>td,footer>span{
+            background-color: #99ffff;
+            color: black;
+        }
+        footer{
+            cursor: pointer;
+        }
+        
+        </style>
   </head>
   <body>
-    <main>
-        <h1>Welcome to My Website</h1> 
-        <div id="test"></div> 
-    </main>
-  </body>
-</html>
+      <main>
+          <div id="cores-container" class="cores-container"></div>
+          <div class="second-container">
+              <div id="memory-container" class="memory-conatiner">
+                  <div id="total-memory" class="cell " ></div>
+                  <div id="swp-memory" class="cell " ></div>
+                </div> 
+                <div id="info" class="rest"></div>
+            </div>
+            <table id="table">
+            </table>
+        </main>
+        <footer><span onclick="handleKillProces()">Enter(or click) to kill</span></footer>
+
+        <script src="index.js"></script>
+    </body>
+    </html>
