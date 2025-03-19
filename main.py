@@ -8,9 +8,7 @@ from os import listdir
 
 def get_mem_usage():
     free_result = subprocess.run(["free"], shell=True, capture_output=True, text=True)
-    total, *rest, shared, buff_cache, available = [
-        int(i) for i in free_result.stdout.split()[7:13]
-    ]
+    total, *rest, shared, buff_cache, available = [int(i) for i in free_result.stdout.split()[7:13]]
     swap_total, swap_used, swap_free = [int(i) for i in free_result.stdout.split()[14:]]
     mem_used = total - available - shared - buff_cache
     swap_used = swap_total - swap_free
@@ -32,9 +30,7 @@ def get_uptime():
 
 
 def get_clock_ticks():
-    getconf_result = subprocess.run(
-        ["getconf CLK_TCK"], shell=True, capture_output=True, text=True
-    )  # TODO search for info about getting this data
+    getconf_result = subprocess.run(["getconf CLK_TCK"], shell=True, capture_output=True, text=True)  # TODO search for info about getting this data
     return int(getconf_result.stdout)
 
 
@@ -105,12 +101,10 @@ def get_all_data(uptime_prev=0):
         cpu_total_delta = cpu_total - cores_prev.get(core[0], [0, 0])[0]
         cpu_total_delta = cpu_total_delta if cpu_total_delta != 0 else 1
         cpu_idled_delta = core[4] - cores_prev.get(core[0], [0, 0])[1]
-        cpu_percentage = round(
-            ((cpu_total_delta - cpu_idled_delta) / cpu_total_delta) * 100, 1
-        )
+        cpu_percentage = round(((cpu_total_delta - cpu_idled_delta) / cpu_total_delta) * 100, 1)
         cores_usage.append(str(cpu_percentage))
         cores_prev[core[0]] = [cpu_total, core[4]]
-
+    print(cores_prev)
     pids = [pid for pid in listdir("/proc") if pid.isnumeric()]
     uptime = get_uptime()
     processes = list()
@@ -124,11 +118,7 @@ def get_all_data(uptime_prev=0):
         except:
             continue
         cpu_usage = round(
-            (
-                (total_time - process_prev.get(pid, 0))
-                / ((uptime - uptime_prev) * cores_number)
-            )
-            * 100,
+            ((total_time - process_prev.get(pid, 0)) / ((uptime - uptime_prev) * cores_number)) * 100,
             1,
         )
         process_prev[pid] = total_time
@@ -163,5 +153,7 @@ def get_all_data(uptime_prev=0):
 
 
 if __name__ == "__main__":
+    sys = System()
     while True:
+        print(sys.get_cores_usage())
         time.sleep(1)

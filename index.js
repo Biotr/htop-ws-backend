@@ -103,7 +103,7 @@ const handleMoreInfo = (processes,loadAvg,uptime)=>{
         <div class="cell">Uptime:${days} ${hours}:${minutes}:${seconds}</div>`
 }
 const handleKillProces = () =>{
-    socket.send(activeProces)
+    socket.send(tempProcesses[activeProces][0])
 }
 
 document.body.addEventListener('keyup',(event)=>{
