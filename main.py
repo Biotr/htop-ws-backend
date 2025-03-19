@@ -6,13 +6,6 @@ import time
 from os import listdir
 
 
-def get_cpu_usage():
-    with open("/proc/stat", "r") as f_cpu:
-        file_cpu = f_cpu.readlines()
-    cores = [core for core in file_cpu if core.startswith("cpu")]
-    return cores
-
-
 def get_mem_usage():
     free_result = subprocess.run(["free"], shell=True, capture_output=True, text=True)
     total, *rest, shared, buff_cache, available = [
@@ -22,6 +15,13 @@ def get_mem_usage():
     mem_used = total - available - shared - buff_cache
     swap_used = swap_total - swap_free
     return [total, mem_used, swap_total, swap_used]
+
+
+def get_cpu_usage():
+    with open("/proc/stat", "r") as f_cpu:
+        file_cpu = f_cpu.readlines()
+    cores = [core for core in file_cpu if core.startswith("cpu")]
+    return cores
 
 
 def get_uptime():
@@ -66,11 +66,7 @@ class Process:
     def get_stat(self):
         file = self._read_file(self.stat_path).split()
         status = file[2]
-        utime = int(file[13])
-        stime = int(file[14])
-        pri = int(file[17])
-        ni = int(file[18])
-        virt = int(file[22])
+        utime, stime, pri, ni, virt = map(int, [*file[13:15], *file[17:19], file[22]])
         total_time = stime + utime
         return [status, pri, ni, virt, total_time]
 
@@ -168,5 +164,4 @@ def get_all_data(uptime_prev=0):
 
 if __name__ == "__main__":
     while True:
-        print(get_uptime())
         time.sleep(1)
