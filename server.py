@@ -1,15 +1,23 @@
 import asyncio
 import json
-import time
+import os
+import signal
 
 from websockets.asyncio.server import serve
 
 from main import get_all_data
 
 
+async def kill_process(id):
+    try:
+        os.kill(int(id), signal.SIGTERM)
+    except Exception as e:
+        print(e)
+
+
 async def listen(ws):
-    async for message in ws:
-        print(message)
+    async for id in ws:
+        await kill_process(id)
 
 
 async def echo(ws):
