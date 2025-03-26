@@ -2,10 +2,9 @@ import asyncio
 import json
 import os
 import signal
-
+from main import SystemInfo
 from websockets.asyncio.server import serve
 
-from main import get_all_data
 
 
 async def kill_process(id):
@@ -21,15 +20,22 @@ async def listen(ws):
 
 
 async def echo(ws):
+    sys = SystemInfo()
     while True:
-        await ws.send(json.dumps(get_all_data()))
+        sys.update()
+        data_to_send = {
+            "memory_info":sys.meminfo,
+            "cores_usage":sys.cores_usage,
+            "load_average":sys.load_avg,
+            "processes":sys.processes,
+            "uptime":sys.uptime
+        }
+        await ws.send(json.dumps(data_to_send))
         await asyncio.sleep(1)
 
 
 async def handler(websocket):
-    async with asyncio.TaskGroup() as tg:
-        tg.create_task(listen(websocket))
-        tg.create_task(echo(websocket))
+    await asyncio.gather(echo(websocket),listen(websocket))
 
 
 async def main():
