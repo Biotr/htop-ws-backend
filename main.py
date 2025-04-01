@@ -109,7 +109,7 @@ class SystemInfo:
                 continue
             uptime_diff = 1 if self.uptime_prev is None else self.uptime - self.uptime_prev
             time_diff = total_time - self.prev_total_time.get(pid,0) 
-            pid_cpu_usage = round(time_diff/(uptime_diff*self.clk_tck))
+            pid_cpu_usage = round((time_diff/(uptime_diff*self.clk_tck)*100))
 
             self.prev_total_time[pid]=total_time
         
@@ -122,7 +122,6 @@ class SystemInfo:
         self.processes = processes
 
     def update(self):
-        print("Updated")
         self.set_cores_info()
         self.set_load_average() 
         self.set_uptime()

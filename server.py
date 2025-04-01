@@ -39,7 +39,10 @@ async def handler(websocket):
 
 
 async def main():
-    async with serve(handler, "localhost", 8765) as server:
+    address = "0.0.0.0"
+    port = 8765
+    async with serve(handler, address, port) as server:
+        print(f"Server running on {address}:{port}")
         await server.serve_forever()
 
 
