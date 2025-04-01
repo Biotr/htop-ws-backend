@@ -22,14 +22,24 @@
         body{
             background-color: #002451;
             align-content: center;
-            padding-top: 10px;
+            height: 100vh;
         }
         main, footer{
-            display: block;
-            min-width: 800px;
+            min-width: 300px;
             max-width: 1300px;
             margin: auto;
-            padding-top: 10px;
+        }
+        main{
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            height: 100vh;
+        }
+        footer{
+            flex: 1;
+        }
+        span{
+            position: sticky;
         }
         .cores-container {
             display: grid;
@@ -43,9 +53,9 @@
         
         .cell{
             color:#99ffff;
-            margin:2px 5px;
             overflow: hidden;
             text-wrap: nowrap;
+            margin: 2px 5px;
             white-space: pre;
         }
         table{
@@ -55,12 +65,13 @@
             border-collapse: collapse;
             text-wrap: nowrap;
             overflow-y: auto;
-            height: 600px;
-            cursor:pointer
+            cursor:pointer;
+            position:relative;
+            flex:1;
         }
         th{
             background-color: #b8f171;
-            color:#111111;
+            color:#000000;
             font-weight: normal;
             margin: 0;
         }
@@ -84,10 +95,24 @@
             background-color: #99ffff;
             color: black;
         }
-        footer{
-            cursor: pointer;
+        thead{
+            position: sticky;
+            top: 0; 
+            z-index: 1;
+        }
+        tbody{
+            position: relative;
         }
         
+        @media only screen and (max-width: 600px){
+            .cores-container{
+                grid-template-columns: repeat(2,1fr);
+            }
+            .second-container{
+                grid-template-columns: repeat(1,1fr);
+            } 
+        }
+
         </style>
   </head>
   <body>
@@ -100,7 +125,26 @@
                 </div> 
                 <div id="info" class="rest"></div>
             </div>
-            <table id="table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>PID</th>
+                        <th>USER</th>
+                        <th>PRI</th>
+                        <th>NI</th>
+                        <th>VIRT</th>
+                        <th>RES</th>
+                        <th>SHR</th>
+                        <th>S</th>
+                        <th>CPU%</th>
+                        <th>MEM%</th>
+                        <th>TIME+</th>
+                        <th>Command</th>
+                    </tr>
+                </thead>
+                <tbody id="table">
+
+                </tbody>
             </table>
         </main>
         <footer><span onclick="handleKillProces()">Enter(or click) to kill</span></footer>
