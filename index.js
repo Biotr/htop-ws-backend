@@ -1,5 +1,6 @@
-const localIp = window.location.hostname
-const socket = new WebSocket(`ws://${localIp}:8765`)
+const ipAddress = window.location.hostname
+const socket = new WebSocket(`ws://${ipAddress}:8765`)
+
 let initialContent, tempProcesses
 let activeProces = 0
 
@@ -133,7 +134,6 @@ socket.addEventListener("close", () => {
 })
 
 socket.addEventListener("message", event => {
-    console.log("cos")
     const {
         memory_info: memoryInfo,
         cores_usage: coresUsage,
@@ -141,6 +141,7 @@ socket.addEventListener("message", event => {
         load_average: loadAvg,
         uptime,
     } = JSON.parse(event.data)
+
     const {
         total_mem: totalMemory,
         used_mem: usedMemory,

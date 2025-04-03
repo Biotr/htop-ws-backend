@@ -47,6 +47,7 @@ def get_clock_ticks():
     getconf_result = subprocess.run(["getconf CLK_TCK"], shell=True, capture_output=True, text=True)  # TODO search for info about getting this data
     return int(getconf_result.stdout)
 
+
 class SystemInfo:
     def __init__(self):
         self.cores_prev = dict()
@@ -56,9 +57,10 @@ class SystemInfo:
         self.clk_tck = get_clock_ticks()
         self.prev_total_time = dict()
         self.uptime_prev = None
-        self.uptime = 0 
-        self.processes=list()
+        self.uptime = 0
+        self.processes = list()
         self.meminfo = dict()
+
     def _read_file(self, prefix):
         with open(f"/proc/{prefix}") as f:
             return f.read()
@@ -89,11 +91,11 @@ class SystemInfo:
 
     def set_memory_info(self):
         free_result = subprocess.run(["free"], shell=True, capture_output=True, text=True)
-        total, *rest, shared, buff_cache, available = [int(i) for i in free_result.stdout.split()[7:13]]
+        total, _, _, shared, buff_cache, available = [int(i) for i in free_result.stdout.split()[7:13]]
         swap_total, swap_used, swap_free = [int(i) for i in free_result.stdout.split()[14:]]
         mem_used = total - available - shared - buff_cache
         swap_used = swap_total - swap_free
-        self.meminfo = {"total_mem":total, "used_mem":mem_used, "swap_mem":swap_total,"swap_used": swap_used}
+        self.meminfo = {"total_mem": total, "used_mem": mem_used, "swap_mem": swap_total, "swap_used": swap_used}
 
     def set_processes(self):
         pids = [pid for pid in listdir("/proc") if pid.isnumeric()]
@@ -108,26 +110,26 @@ class SystemInfo:
             except Exception as e:
                 continue
             uptime_diff = 1 if self.uptime_prev is None else self.uptime - self.uptime_prev
-            time_diff = total_time - self.prev_total_time.get(pid,0) 
-            pid_cpu_usage = round((time_diff/(uptime_diff*self.clk_tck)*100))
+            time_diff = total_time - self.prev_total_time.get(pid, 0)
+            pid_cpu_usage = round((time_diff / (uptime_diff * self.clk_tck) * 100))
 
-            self.prev_total_time[pid]=total_time
-        
-            time_plus = total_time/self.clk_tck
+            self.prev_total_time[pid] = total_time
+
+            time_plus = total_time / self.clk_tck
             mem_usage = round((res / self.meminfo["total_mem"]) * 100, 1)
             shr = rss_file + rss_shmem
 
-            processes.append({"pid":pid,"owner":owner,"pri":pri,"ni":ni,"virt":virt,"res":res,"shr":shr,"status":status,"pid_cpu_usage":pid_cpu_usage,"mem_usage":mem_usage,"time_plus":time_plus,"command":command})
+            processes.append({"pid": pid, "owner": owner, "pri": pri, "ni": ni, "virt": virt, "res": res, "shr": shr, "status": status, "pid_cpu_usage": pid_cpu_usage, "mem_usage": mem_usage, "time_plus": time_plus, "command": command})
         self.uptime_prev = self.uptime
         self.processes = processes
 
     def update(self):
         self.set_cores_info()
-        self.set_load_average() 
+        self.set_load_average()
         self.set_uptime()
         self.set_memory_info()
         self.set_processes()
-        return {"cores_usage":self.cores_usage,"load_average":self.load_avg,"uptime":self.uptime,"mem_info":self.meminfo}
+
 
 if __name__ == "__main__":
     sys = SystemInfo()
