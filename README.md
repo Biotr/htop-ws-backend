@@ -21,6 +21,14 @@ python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
+3. Setup environment variables, example:
+```
+WEBSOCKET_HOST='0.0.0.0'
+WEBSOCKET_PORT='8765'
+WEBSOCKET_CERT_PATH='./certificates/cert.pem'
+WEBSOCKET_KEY_PATH='./certificates/key.pem'
+ENGINE_INTERVAL="1.0"
+```
 3. To make connection with SSL you have to create certificates.  
 You can do by running `setup.sh` or create certificates by your own in `./certifications` directory.
 ```
@@ -30,7 +38,7 @@ You can do by running `setup.sh` or create certificates by your own in `./certif
 ```
 python main.py
 ```
-5. Because with `setup.sh` we created self-signed certificates, you have to go to `https://{server-public-ip}:8765` > Advanced > "Proceed".
+5. Because with `setup.sh` we created self-signed certificates, you have to go to `https://{server-public-ip}:{WEBSOCKET_PORT}` > Advanced > "Proceed".
 6. Now we you can go to https://biotr.github.io/htop-web, enter your server public ip and fell free to monitor your system.
 
 OPTIONAL

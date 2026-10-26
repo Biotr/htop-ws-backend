@@ -1,17 +1,14 @@
 #!/bin/bash
 
-CERT_DIR="./certificates"
-KEY_FILE="$CERT_DIR/key.pem"
-CERT_FILE="$CERT_DIR/cert.pem"
+mkdir -p "$(dirname $WEBSOCKET_CERT_PATH)"
+mkdir -p "$(dirname $WEBSOCKET_KEY_PATH)"
 
-mkdir -p "$CERT_DIR"
-
-rm -f "$KEY_FILE" "$CERT_FILE"
+rm -f "$WEBSOCKET_KEY_PATH" "$WEBSOCKET_CERT_PATH"
 
 echo "Creating certificates..."
 openssl req -x509 -newkey rsa:4096 -nodes \
-    -keyout "$KEY_FILE" \
-    -out "$CERT_FILE" \
+    -keyout "$WEBSOCKET_KEY_PATH" \
+    -out "$WEBSOCKET_CERT_PATH" \
     -sha256 \
     -days 3650 \
     -subj "/C=PL/ST=Dolnoslaskie/L=Wroclaw/O=Dev/CN=localhost" \
@@ -23,5 +20,5 @@ else
     echo "Certificates were successfully created."
 fi
 
-chmod  600 "$KEY_FILE"
-chmod  600 "$CERT_FILE"
+chmod  600 "$WEBSOCKET_KEY_PATH"
+chmod  600 "$WEBSOCKET_CERT_PATH"

@@ -10,12 +10,12 @@ from websockets.exceptions import ConnectionClosedOK
 class WebsocketServer:
     def __init__(
         self,
-        engine,
         host="0.0.0.0",
         port=8765,
         certfile="./certificates/cert.pem",
         keyfile="./certificates/key.pem",
         *,
+        engine,
         actions,
     ):
 

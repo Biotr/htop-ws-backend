@@ -11,7 +11,7 @@ class MetricsEngine:
         self.data = {}
         self.prev_uptime = None
 
-    async def run_loop(self):
+    async def run_loop(self, interval):
         while True:
             uptime = self.system_collector.get_uptime()
             uptime_diff = 1.0 if self.prev_uptime is None else uptime - self.prev_uptime
@@ -29,4 +29,4 @@ class MetricsEngine:
                 "processes": processes,
                 "uptime": uptime,
             }
-            await asyncio.sleep(1)
+            await asyncio.sleep(interval)
