@@ -37,7 +37,7 @@ class SystemCollector:
         load_avg = file[:3]
         return load_avg
 
-    def get_clock_ticks():
+    def get_clock_ticks(self):
         getconf_result = subprocess.run(["getconf CLK_TCK"], shell=True, capture_output=True, text=True)
         return int(getconf_result.stdout)
 

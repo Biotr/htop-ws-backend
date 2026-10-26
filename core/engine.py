@@ -6,7 +6,7 @@ import asyncio
 class MetricsEngine:
     def __init__(self):
         self.system_collector = SystemCollector()
-        self.clk_tck = 100
+        self.clk_tck = self.system_collector.get_clock_ticks()
         self.process_collector = ProcessCollector(self.clk_tck)
         self.data = {}
         self.prev_uptime = None
@@ -30,8 +30,3 @@ class MetricsEngine:
                 "uptime": uptime,
             }
             await asyncio.sleep(1)
-
-
-if __name__ == "__main__":
-    metrics = MetricsEngine()
-    asyncio.run(metrics.run_loop())
